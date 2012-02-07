@@ -1,0 +1,122 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ */
+function bpoc_contest_requirements($phase) {
+  /**
+   * If the Contenty Copy module is not enabled before we begin our install function, then the install
+   * function will fail. This hook prevents the install from proceding if the Content Copy module is
+   * not already installed and enabled.
+   */
+  $requirements = array();
+  $t = get_t();
+
+  switch ($phase) {
+    case 'install':
+      $error = FALSE;
+      if (!module_exists('content_copy')) {
+        $error = TRUE;
+        $value = $t('Content Copy module to be pre-installed.');
+        $severity = REQUIREMENT_ERROR;
+      }
+                        
+      if ($error) {
+        $requirements['bpoc_contest'] = array(
+          'title' => $t('BPOC Contest requirements'),
+          'value' => $value . $t(' If the required modules are now installed, please enable BPOC Contest again.'),
+          'severity' => $severity,
+        );
+      }
+    break;
+  }
+  return $requirements;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function bpoc_contest_install() {
+  // Create tables.
+  drupal_install_schema('bpoc_contest');
+
+  $filename = drupal_get_path('module','bpoc_contest') . "/bpoc_contest.install.inc";
+  $content = implode ('', file ($filename));
+  // Build form state
+  $form_state = array(
+    'values' => array(
+      'type_name' => '<create>',
+      'macro' => $content,
+    ),
+  );
+  drupal_execute("content_copy_import_form", $form_state);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function bpoc_contest_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('bpoc_contest');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function bpoc_contest_schema() {
+  $schema['bpoc_contest_votes'] = array(
+    'description' => t('Stores votes from the bpoc_contest module.'),
+    'fields' => array(
+      'vote_id'  => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid'  => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('The uid of the user casting the vote.'),
+      ),
+      'nid'  => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('The nid of the node being voted on.'),
+      ),
+      'vote_value'  => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('The value of vote cast.'),
+      ),
+      'tag' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'email_address' => array(
+        'description' => t('The email address of the voter.'),
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'timestamp' => array(
+        'description' => t('The time the vote was registered.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'source' => array(
+        'description' => t('The source IP address of the voter.'),
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+    ),
+    'primary key' => array('vote_id', 'nid'),
+    'indexes' => array(
+      'vote_id' => array('vote_id'),
+      'nid' => array('nid'),
+    ),
+  );
+  return $schema;
+}

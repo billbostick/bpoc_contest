@@ -1,0 +1,29 @@
+.node-form input #edit-title {
+  height: 20px;
+  font-size: 15px;
+}
+.ui-dialog {
+  background: #fff;
+  border: 5px solid #6E8694;
+  width:300px;
+  height: 200px;
+  padding: 15px;
+}
+
+.node-contest h1.title {
+  width: 100%;
+  color: #fff;
+  background: #6E8694;
+  font-size: 20px;
+  font-weight: normal;
+  text-transform: lowercase;
+}
+
+.node .contest-rules-link,
+.node .contest-terms-link,
+.node .contest-submit-link {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  margin-right: 5px;
+}
+

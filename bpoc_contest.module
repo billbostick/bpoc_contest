@@ -1,0 +1,470 @@
+<?php
+
+include_once('bpoc_contest_voting.inc');
+
+/**
+ * Implementation of hook_perm().
+ */
+function bpoc_contest_perm() {
+  return array(
+    'administer bpoc contest',
+    'vote on bpoc contest',
+    'enter bpoc contest',
+    'view bpoc contest results',
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function bpoc_contest_menu() {
+  $items = array();
+
+  $items['admin/settings/bpoc_contest'] = array(
+    'title' => 'BPOC Contest Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bpoc_contest_admin_settings'),
+    'access arguments' => array('administer bpoc contest'),
+    'type' => MENU_ITEM_NORMAL,
+  );
+
+  $items['node/%node/vote/%ctools_js'] = array(
+    'page callback' => 'bpoc_contest_vote_callback',
+    'page arguments' => array(1, 3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['node/%node/rules/%ctools_js'] = array(
+    'page callback' => 'bpoc_contest_rules_callback',
+    'page arguments' => array(1, 3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['node/%node/terms/%ctools_js'] = array(
+    'page callback' => 'bpoc_contest_terms_callback',
+    'page arguments' => array(1, 3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['contest/clear'] = array(
+    'title' => 'Clear BPOC Votes',
+    'page callback' => 'bpoc_contest_clear_votes',
+    'access arguments' => array('administer bpoc contest'),
+    'type' => MENU_ITEM_NORMAL,
+  );
+  $items['contest/clearall'] = array(
+    'title' => 'Clear BPOC Votes',
+    'page callback' => 'bpoc_contest_clearall_votes',
+    'access arguments' => array('administer bpoc contest'),
+    'type' => MENU_ITEM_NORMAL,
+  );
+  $items['contest/clearsession'] = array(
+    'title' => 'Clear BPOC Votes',
+    'page callback' => 'bpoc_contest_clear_session',
+    'access arguments' => array('access content'),
+    'type' => MENU_ITEM_NORMAL,
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function bpoc_contest_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'bpoc_contest_vote' && !empty($form_state['ajax'])) {
+    $form['submit']['#attributes']['class'] = 'ctools-dialog-button';
+  }
+
+  /* we can't alter CCK fields here. Instead, we have to alter then in an after build function */
+  elseif ($form_id == 'photo_submission_node_form') {
+    $form['#after_build'][] = 'bpoc_contest_submission_form_after_build';
+  }
+}
+
+function bpoc_contest_submission_form_after_build($form, &$form_state) {
+  $contest_nid = $form['field_contest_ref'][0]['nid']['#default_value'];
+  $contest_node = node_load($contest_nid);
+  if ($contest_node->field_contest_namefield[0]['value'] == '0') {
+    $form['field_contest_name']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_emailfield[0]['value'] == '0') {
+    $form['field_contest_email']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_addressfield[0]['value'] == '0') {
+    $form['field_contest_address']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_phonefield[0]['value'] == '0') {
+    $form['field_contest_phone']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_parentfield[0]['value'] == '0') {
+    $form['field_contest_parent']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_birthfield[0]['value'] == '0') {
+    $form['field_contest_birth']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_parentfield[0]['value'] == '0') {
+    $form['field_contest_parent']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_parent_emailfield[0]['value'] == '0') {
+    $form['field_contest_parent_email']['#type'] = 'hidden';
+  }
+  if ($contest_node->field_contest_parent_agreefield[0]['value'] == '0') {
+    /* the hidden attribute doesn't work for this field */
+    $form['field_contest_parent_agree']['#access'] = FALSE;
+  }
+  return $form;
+}
+
+/*
+ * Admin settings form
+ */
+function bpoc_contest_admin_settings() {
+  // some placeholder form elements
+  $form = array();
+
+  $form['bpoc_contest_field1'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Field Number One'),
+    '#description' => t('Description of Field Number One'),
+    '#default_value' => variable_get('contest_field1', NULL),
+  );
+
+  $form['bpoc_contest_option1'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Option Number One'),
+    '#description' => t('Description of Option Number One'),
+    '#default_value' => variable_get('contest_option1', NULL),
+  );
+
+  return system_settings_form($form);
+}
+
+/*
+ * process a user vote
+ */
+function bpoc_contest_vote_callback($node, $js) {
+  $title = t('Vote');
+  $form_id = 'bpoc_contest_vote_form';
+  $msg = 'Thank you for voting!';
+
+
+  if ($js) {
+    ctools_include('ajax');
+    $form_state = array(
+      'ajax' => TRUE,
+      'title' => $title,
+      'values' => array(
+        'nid' => $node->nid,
+      ),
+    );
+    $output = dialog_form_wrapper($form_id, $form_state);
+    if (empty($output)) {
+      $output[] = ctools_ajax_command_reload();
+    }
+    else {
+      foreach ($output as $i => $command) {
+        if ($command['command'] == 'dialog_display') {
+          $output[$i]['options']['height'] = 250;
+          $output[$i]['options']['width'] = 600;
+                                                    
+          $output[$i]['options']['position'] = 'center';
+          $output[$i]['options']['resizable'] = FALSE;
+        }
+      }
+    }
+    ctools_ajax_render($output);
+  }
+  else {
+    return drupal_get_form($form_id, $nid);
+  }
+}
+
+function bpoc_contest_rules_callback($node, $ajax) {
+  $rules = $node->field_contest_rules[0]['value'];
+  if (!$rules) {
+    $rules = '&nbsp;';
+  }
+  if ($ajax) {
+    $options = array(
+      'height' => 600,
+      'width' => 650,
+      'position' => 'center',
+    );
+    dialog_ajax_render('Rules', $rules, $options);
+    return;
+  }
+  return $rules;
+}
+
+function bpoc_contest_terms_callback($node, $ajax) {
+  $terms = $node->field_contest_terms[0]['value'];
+  if (!$terms) {
+    $terms = '&nbsp;';
+  }
+  if ($ajax) {
+    $options = array(
+      'height' => 600,
+      'width' => 650,
+      'position' => 'center',
+    );
+    dialog_ajax_render('Terms', $terms, $options);
+    return;
+  }
+  return $terms;
+}
+
+
+/*
+ * Voting form
+ */
+function bpoc_contest_vote_form(&$form_state) {
+  global $user;
+  $default_email = '';
+  if ($user->uid) {
+    $default_email = $user->mail;
+  }
+  else if (bpoc_contest_session_get('email')) {
+    $default_email = bpoc_contest_session_get('email');
+  }
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Email address',
+    '#size' => '50',
+    '#required' => TRUE,
+    '#default_value' => $default_email,
+  );
+  $contest_node = bpoc_contest_get_contest($form_state['values']['nid']);
+  if (bpoc_contest_signup($contest_node)) {
+    $form['signup'] = array(
+      '#type' => 'checkbox',
+      '#title' => bpoc_contest_get_signup_string($contest_node),
+    );
+  }
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit Vote',
+  );
+  $form['nid'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $form_state['values']['nid'],
+  );
+  return $form;
+}
+
+/*
+ * Voting form validation function
+ */
+function bpoc_contest_vote_form_validate($form, &$form_state) {
+  if (!valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', t('Invalid Email Address'));
+  }
+}
+
+/*
+ * Voting form submit function
+ */
+function bpoc_contest_vote_form_submit($form, &$form_state) {
+  if (!$voter_email = $form_state['values']['email']) {
+    $voter_email = '';
+  }
+  bpoc_contest_session_set('email', $voter_email);
+  bpoc_contest_vote($form_state['values']['nid'], $voter_email);
+  $form_state['redirect'] = drupal_get_destination();
+}
+
+function bpoc_contest_widget($nid) {
+  global $user;
+
+  $node = node_load($nid);
+  if ($node->uid == $user->uid) {
+    $is_author = 1;
+  }
+  else {
+    $is_author = 0;
+  }
+  $total = 1;
+
+  if (bpoc_contest_session_get('email')) {
+    $email = bpoc_contest_session_get('email');
+  }
+
+  $voted =  0;
+  $selected = 0;
+  return theme('bpoc_contest_widget', $nid, $total, $is_author, $voted, $selected);
+}
+
+function bpoc_contest_theme() {
+  return array(
+    'bpoc_contest_widget' => array(
+      'arguments' => array('nid', 'total', 'is_author', 'voted', 'selected'),
+    ),
+  );
+}
+
+/* given the nid of a submission, this function will return the nid of the contest */
+function bpoc_contest_get_contest($nid) {
+  $submission_node = node_load($nid);
+  if (property_exists($submission_node, 'field_contest_ref')) {
+    if (is_array($submission_node->field_contest_ref)) {
+      if (array_key_exists('nid', $submission_node->field_contest_ref[0])) {
+        if (isset($submission_node->field_contest_ref[0]['nid'])) {
+          return $submission_node->field_contest_ref[0]['nid'];
+        }
+      }
+    }
+  }
+  return NULL;
+}
+
+function bpoc_contest_get_vote_string($nid) {
+  $contest_node = node_load($nid);
+  if (property_exists($contest_node, 'field_contest_vote_string')) {
+    if (is_array($contest_node->field_contest_vote_string)) {
+      if (isset($contest_node->field_contest_vote_string[0]['value'])) {
+        return $contest_node->field_contest_vote_string[0]['value'];
+      }
+    }
+  }
+  return NULL;
+}
+
+function bpoc_contest_get_yourvote_string($nid) {
+  $contest_node = node_load($nid);
+  if (property_exists($contest_node, 'field_contest_yourvote_string')) {
+    if (is_array($contest_node->field_contest_yourvote_string)) {
+      if (isset($contest_node->field_contest_yourvote_string[0]['value'])) {
+        return $contest_node->field_contest_yourvote_string[0]['value'];
+      }
+    }
+  }
+  return NULL;
+}
+
+function bpoc_contest_signup($nid) {
+  $contest_node = node_load($nid);
+  if (property_exists($contest_node, 'field_contest_signup')) {
+    if (is_array($contest_node->field_contest_signup)) {
+      if (isset($contest_node->field_contest_signup[0]['value'])) {
+        return $contest_node->field_contest_signup[0]['value'];
+      }
+    }
+  }
+  return NULL;
+}
+
+function bpoc_contest_get_signup_string($nid) {
+  $contest_node = node_load($nid);
+  if (property_exists($contest_node, 'field_contest_signup_string')) {
+    if (is_array($contest_node->field_contest_signup_string)) {
+      if (isset($contest_node->field_contest_signup_string[0]['value'])) {
+        return $contest_node->field_contest_signup_string[0]['value'];
+      }
+    }
+  }
+  return NULL;
+}
+
+function theme_bpoc_contest_widget($nid, $total, $is_author, $voted, $selected) {
+
+  $module_path = drupal_get_path('module', 'bpoc_contest');
+  $full_path = $module_path .'/bpoc_contest.css';
+  $contest_node = bpoc_contest_get_contest($nid);
+  dialog_add_js();
+  drupal_add_css($full_path);
+  $output = '<div class="bpoc-contest-widget">';
+  $vote_string = bpoc_contest_get_vote_string($contest_node);
+  $output .= '<a href="/node/' . $nid . '/vote/nojs" class="ctools-use-dialog">' . $vote_string . '</a>';
+  $output .= '</div>';
+
+  return $output;
+}
+
+function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
+  switch ($op) {
+    case 'view':
+      if ($node->type == 'photo_submission') {
+        $node->content['bpoc_widget'] = array(
+          '#value' => bpoc_contest_widget($node->nid),
+          '#weight' => 100,
+        );
+      }
+      if ($node->type == 'contest') {
+        $module_path = drupal_get_path('module', 'bpoc_contest');
+        $full_path = $module_path .'/bpoc_contest.css';
+        dialog_add_js();
+        drupal_add_css($full_path);
+        $node->content['rules'] = array(
+          '#value' => l('Contest Rules', 'node/' . $node->nid . '/rules/nojs',
+                       array('attributes' => array('class' => 'ctools-use-dialog contest-rules-link'))),
+
+          '#weight' => 101,
+        );
+        $node->content['terms'] = array(
+          '#value' => l('Terms', 'node/' . $node->nid . '/terms/nojs',
+                       array('attributes' => array('class' => 'ctools-use-dialog contest-terms-link'))),
+
+          '#weight' => 102,
+        );
+
+        if (1) {
+          $contest_type = $node->field_contest_type[0]['value'];
+          $node->content['submit_link'] = array(
+            '#value' => l('Submit ' . $contest_type, 'node/add/photo-submission/' . $node->nid,
+                        array('attributes' => array('class' => 'contest-submit-link'))),
+            '#weight' => 103,
+          );
+        }
+        break;
+      }
+  }
+}
+
+
+/* session functions */
+
+/*
+ * Get stored email address
+ */
+function bpoc_contest_session_get($session_name) {
+  if (isset($_SESSION[$session_name])) {
+    return $_SESSION[$session_name];
+  }
+  return NULL;
+}
+
+/*
+ * store email address in sessions table
+ */
+function bpoc_contest_session_set($session_name, $session_value) {
+  $_SESSION[$session_name] = $session_value;
+}
+
+/*
+ * clear email address from current user's session table
+ */
+function bpoc_contest_session_clear($session_name) {
+  unset($_SESSION[$session_name]);
+}
+
+/* utility functions for test and debug */
+function bpoc_contest_clearall_votes() {
+  db_query("TRUNCATE TABLE {bpoc_contest_votes}");
+  drupal_goto('/');
+}
+
+function bpoc_contest_clear_votes() {
+  global $user;
+  db_query("DELETE FROM {bpoc_contest_votes} WHERE email_address = '%s'", bpoc_contest_session_get('email'));
+  drupal_goto('/');
+}
+
+function bpoc_contest_clear_session() {
+  bpoc_contest_session_clear('email'); 
+  drupal_goto('/');
+}
+
+
