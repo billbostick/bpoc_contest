@@ -56,8 +56,31 @@ function bpoc_contest_install() {
  * Implementation of hook_uninstall().
  */
 function bpoc_contest_uninstall() {
+  $t = get_t();
   // Remove tables.
   drupal_uninstall_schema('bpoc_contest');
+
+  $content = content_types('contest');
+  if (count($content['fields']) > 0) {
+    module_load_include('inc', 'content', 'includes/content.crud');
+    foreach ($content['fields'] as $key => $field) {
+      content_field_instance_delete($key, 'contest', FALSE);
+    }
+    drupal_set_message($t('cck fields have been deleted from contest contest type'));
+  }
+  content_clear_type_cache(TRUE);
+  menu_rebuild();
+  $groups = fieldgroup_groups('contest');
+  if (count($groups) > 0) {
+    foreach ($groups as $group) {
+      fieldgroup_delete('contest', $group['group_name']);
+    }
+    drupal_set_message($t('group fields have been deleted from contest contest type'));
+  }
+  content_module_delete('contest');
+  node_type_delete('contest');
+  content_clear_type_cache();
+  drupal_flush_all_caches();
 }
 
 /**
