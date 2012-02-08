@@ -1092,7 +1092,7 @@ Once Only',
     array (
       0 => 
       array (
-        'value' => NULL,
+        'value' => 1,
       ),
     ),
     'default_value_php' => '',
@@ -1100,7 +1100,7 @@ Once Only',
     array (
       'field_contest_namefield' => 
       array (
-        'value' => false,
+        'value' => true,
       ),
     ),
     'group' => 'group_contest_submission_fields',
@@ -1178,7 +1178,7 @@ Once Only',
     array (
       0 => 
       array (
-        'value' => NULL,
+        'value' => 1,
       ),
     ),
     'default_value_php' => '',
@@ -1186,7 +1186,7 @@ Once Only',
     array (
       'field_contest_emailfield' => 
       array (
-        'value' => false,
+        'value' => true,
       ),
     ),
     'group' => 'group_contest_submission_fields',
