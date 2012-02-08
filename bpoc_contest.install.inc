@@ -13,12 +13,123 @@ $content['type']  = array (
     'sticky' => false,
     'revision' => false,
   ),
+  'upload' => '0',
   'old_type' => 'contest',
   'orig_type' => '',
   'module' => 'node',
   'custom' => '1',
   'modified' => '1',
   'locked' => '0',
+  'modalframe_exclude_node' => 
+  array (
+    'title' => false,
+    'body_field' => false,
+    'revision_information' => false,
+    'author' => false,
+    'options' => false,
+    'buttons' => false,
+    'comment_settings' => false,
+    'menu' => false,
+    'path' => false,
+    'custom_breadcrumbs' => false,
+    'group_contest_settings' => false,
+    'group_contest_dates' => false,
+    'group_contest_submission_fields' => false,
+    'group_contest_strings' => false,
+    'group_contest_rules' => false,
+    'group_contest_terms' => false,
+  ),
+  'comment' => '0',
+  'comment_default_mode' => '4',
+  'comment_default_order' => '1',
+  'comment_default_per_page' => '50',
+  'comment_controls' => '3',
+  'comment_anonymous' => 0,
+  'comment_subject_field' => '1',
+  'comment_preview' => '1',
+  'comment_form_location' => '0',
+  'custom_breadcrumbs_show_form_table' => 1,
+  'skinr_settings' => 
+  array (
+    'comment_group' => 
+    array (
+      'fusion_mobile' => 
+      array (
+        'widgets' => 
+        array (
+          'fusion-content-alignment' => '',
+        ),
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+      'garland' => 
+      array (
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+      'mobile' => 
+      array (
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+      'mopa' => 
+      array (
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+    ),
+    'node_group' => 
+    array (
+      'fusion_mobile' => 
+      array (
+        'widgets' => 
+        array (
+          'fusion-content-alignment' => '',
+        ),
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+      'garland' => 
+      array (
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+      'mobile' => 
+      array (
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+      'mopa' => 
+      array (
+        'advanced' => 
+        array (
+          '_additional' => '',
+          '_template' => '',
+        ),
+      ),
+    ),
+  ),
 );
 $content['groups']  = array (
   0 => 
@@ -56,6 +167,11 @@ $content['groups']  = array (
           'exclude' => 0,
         ),
         3 => 
+        array (
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'mobile' => 
         array (
           'format' => 'fieldset',
           'exclude' => 0,
@@ -110,6 +226,11 @@ $content['groups']  = array (
           'format' => 'fieldset',
           'exclude' => 0,
         ),
+        'mobile' => 
+        array (
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
         'token' => 
         array (
           'format' => 'fieldset',
@@ -156,6 +277,11 @@ $content['groups']  = array (
           'exclude' => 0,
         ),
         3 => 
+        array (
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'mobile' => 
         array (
           'format' => 'fieldset',
           'exclude' => 0,
@@ -210,6 +336,11 @@ $content['groups']  = array (
           'format' => 'fieldset',
           'exclude' => 0,
         ),
+        'mobile' => 
+        array (
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
         'token' => 
         array (
           'format' => 'fieldset',
@@ -260,6 +391,11 @@ $content['groups']  = array (
           'format' => 'fieldset',
           'exclude' => 0,
         ),
+        'mobile' => 
+        array (
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
         'token' => 
         array (
           'format' => 'fieldset',
@@ -306,6 +442,11 @@ $content['groups']  = array (
           'exclude' => 0,
         ),
         3 => 
+        array (
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'mobile' => 
         array (
           'format' => 'fieldset',
           'exclude' => 0,
@@ -2045,6 +2186,102 @@ Once Only',
   ),
   19 => 
   array (
+    'label' => 'Submit Page Title',
+    'field_name' => 'field_contest_submitpagetitle',
+    'type' => 'text',
+    'widget_type' => 'text_textfield',
+    'change' => 'Change basic information',
+    'weight' => '51',
+    'rows' => 5,
+    'size' => '60',
+    'description' => '',
+    'default_value' => 
+    array (
+      0 => 
+      array (
+        'value' => '',
+        '_error_element' => 'default_value_widget][field_contest_submitpagetitle][0][value',
+      ),
+    ),
+    'default_value_php' => '',
+    'default_value_widget' => 
+    array (
+      'field_contest_submitpagetitle' => 
+      array (
+        0 => 
+        array (
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_contest_submitpagetitle][0][value',
+        ),
+      ),
+    ),
+    'group' => 'group_contest_strings',
+    'required' => 0,
+    'multiple' => '0',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'op' => 'Save field settings',
+    'module' => 'text',
+    'widget_module' => 'text',
+    'columns' => 
+    array (
+      'value' => 
+      array (
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => false,
+        'sortable' => true,
+        'views' => true,
+      ),
+    ),
+    'display_settings' => 
+    array (
+      'label' => 
+      array (
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      4 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      2 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      3 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'mobile' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+  ),
+  20 => 
+  array (
     'label' => 'Contest Rules',
     'field_name' => 'field_contest_rules',
     'type' => 'text',
@@ -2071,13 +2308,14 @@ Once Only',
         array (
           'value' => '',
           '_error_element' => 'default_value_widget][field_contest_rules][0][value',
+          'format' => '4',
         ),
       ),
     ),
     'group' => 'group_contest_rules',
     'required' => 0,
     'multiple' => '0',
-    'text_processing' => '0',
+    'text_processing' => '1',
     'max_length' => '',
     'allowed_values' => '',
     'allowed_values_php' => '',
@@ -2093,6 +2331,13 @@ Once Only',
         'not null' => false,
         'sortable' => true,
         'views' => true,
+      ),
+      'format' => 
+      array (
+        'type' => 'int',
+        'unsigned' => true,
+        'not null' => false,
+        'views' => false,
       ),
     ),
     'display_settings' => 
@@ -2135,7 +2380,7 @@ Once Only',
       ),
     ),
   ),
-  20 => 
+  21 => 
   array (
     'label' => 'Contest Terms of Agreement',
     'field_name' => 'field_contest_terms',
@@ -2163,13 +2408,14 @@ Once Only',
         array (
           'value' => '',
           '_error_element' => 'default_value_widget][field_contest_terms][0][value',
+          'format' => '4',
         ),
       ),
     ),
     'group' => 'group_contest_terms',
     'required' => 0,
     'multiple' => '0',
-    'text_processing' => '0',
+    'text_processing' => '1',
     'max_length' => '',
     'allowed_values' => '',
     'allowed_values_php' => '',
@@ -2185,6 +2431,13 @@ Once Only',
         'not null' => false,
         'sortable' => true,
         'views' => true,
+      ),
+      'format' => 
+      array (
+        'type' => 'int',
+        'unsigned' => true,
+        'not null' => false,
+        'views' => false,
       ),
     ),
     'display_settings' => 
@@ -2237,4 +2490,6 @@ $content['extra']  = array (
   'comment_settings' => '8',
   'menu' => '3',
   'path' => '7',
+  'custom_breadcrumbs' => '30',
+  'path_redirect' => '30',
 );

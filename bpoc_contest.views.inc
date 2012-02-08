@@ -15,7 +15,7 @@ function bpoc_contest_views_data() {
     'title' => t('Value of vote'),
     'help' => t('The value of the vote'),
     'field' => array(
-      'handler' => 'bpoc_contest_views_handler_field_value',
+      'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
     ),
     'filter' = array(
@@ -26,6 +26,34 @@ function bpoc_contest_views_data() {
       'handler' => 'views_handler_sort',
     ),
   );
+
+  $data['bpoc_contest_votes']['table']['base'] = array(
+    'field' => 'nid',
+    'title' => t('Votes'),
+    'help' => t('BPOC Votes'),
+    'weight' => -9;
+  );
+
+  $data['bpoc_contest_votes']['nid'] = array(
+    'title' => t('Node'),
+    'help' => t('The particular node the vote is attached to'),
+    'relationship' => array(
+      'label' => t('Node'),
+      'base' => 'node',
+      'base field' => 'nid',
+    ),
+  );
+
+  $data['node_example']['nid'] = array(
+    'title' => t('Node'),
+    'help' => t('The particular node the color and quantity is attached to'),
+    'relationship' => array(
+      'label' => t('Node'),
+      'base' => 'node',
+      'base field' => 'nid',
+    ),
+  );
+
   return $data;
 }
 

@@ -81,6 +81,13 @@ function bpoc_contest_form_alter(&$form, $form_state, $form_id) {
   /* we can't alter CCK fields here. Instead, we have to alter then in an after build function */
   elseif ($form_id == 'photo_submission_node_form') {
     $form['#after_build'][] = 'bpoc_contest_submission_form_after_build';
+    $form['#validate'][] = 'photo_submission_validate';
+  }
+}
+
+function photo_submission_validate($form, &$form_state) {
+  if ($form['field_contest_user_agreement']['#value']['value'][0] == '0') {
+    form_set_error('field_contest_user_agreement', t('You must agree to the contest rules and terms.'));
   }
 }
 
@@ -88,6 +95,10 @@ function bpoc_contest_submission_form_after_build($form, &$form_state) {
   $contest_nid = $form['field_contest_ref'][0]['nid']['#default_value'];
   $contest_node = node_load($contest_nid);
   $form['field_contest_ref']['#type'] = 'hidden';
+
+  if ($contest_node->field_contest_submitpagetitle[0]['value']) {
+    drupal_set_title($contest_node->field_contest_submitpagetitle[0]['value']);
+  }
 
   if ($contest_node->field_contest_namefield[0]['value'] == '0') {
     $form['field_contest_name']['#type'] = 'hidden';
@@ -119,6 +130,7 @@ function bpoc_contest_submission_form_after_build($form, &$form_state) {
   }
   return $form;
 }
+
 
 /*
  * Admin settings form
@@ -405,22 +417,27 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
         if (!$teaser) {
           $node->content['submissions'] = array(
             '#value' => views_embed_view('bpoc_photo_contest', 'default', $node->nid),
-            '#weight' => 50,
+            '#weight' => -10,
+            '#suffix' => '<div style="clear:both"></div>',
           );
         }
 
-        $node->content['rules'] = array(
-          '#value' => l('Contest Rules', 'node/' . $node->nid . '/rules/nojs',
-                       array('attributes' => array('class' => 'ctools-use-dialog contest-rules-link'))),
-          '#weight' => 101,
-          '#prefix' => '<div class="contest-links">',
-        );
-        $node->content['terms'] = array(
-          '#value' => l('Terms', 'node/' . $node->nid . '/terms/nojs',
-                       array('attributes' => array('class' => 'ctools-use-dialog contest-terms-link'))),
+        if ($node->field_contest_rules[0]['value']) {
+          $node->content['rules'] = array(
+            '#value' => l('Contest Rules', 'node/' . $node->nid . '/rules/nojs',
+                         array('attributes' => array('class' => 'ctools-use-dialog contest-rules-link'))),
+            '#weight' => 101,
+            '#prefix' => '<div class="contest-links">',
+          );
+        }
+        if ($node->field_contest_terms[0]['value']) {
+          $node->content['terms'] = array(
+            '#value' => l('Terms', 'node/' . $node->nid . '/terms/nojs',
+                         array('attributes' => array('class' => 'ctools-use-dialog contest-terms-link'))),
 
-          '#weight' => 102,
-        );
+            '#weight' => 102,
+          );
+        }
 
         $contest_type = $node->field_contest_type[0]['value'];
         $node->content['submit_link'] = array(

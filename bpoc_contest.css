@@ -48,10 +48,20 @@
 .view-bpoc-photo-contest.view-display-id-default .views-row {
   float: left;
   width: 180px;
+  padding-bottom: 15px;
+}
+
+.view-bpoc-photo-contest.view-display-id-default ul.pager {
+  padding: 10px 0;
 }
 
 .contest-links {
   clear: both;
-  padding-top: 20px;
+  padding-top: 10px;
+}
+
+.view-bpoc-photo-contest.view-display-id-default .views-field-nothing {
+  text-align: right;
+  padding-right: 8px;
 }
 
