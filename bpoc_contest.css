@@ -27,3 +27,17 @@
   margin-right: 5px;
 }
 
+.ui-dialog-container a.ui-dialog-titlebar-close {
+  float: right;
+}
+
+.ui-dialog-container #dialog-main {
+  clear: both;
+}
+
+.ui-dialog-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+

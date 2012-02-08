@@ -87,6 +87,8 @@ function bpoc_contest_form_alter(&$form, $form_state, $form_id) {
 function bpoc_contest_submission_form_after_build($form, &$form_state) {
   $contest_nid = $form['field_contest_ref'][0]['nid']['#default_value'];
   $contest_node = node_load($contest_nid);
+  $form['field_contest_ref']['#type'] = 'hidden';
+
   if ($contest_node->field_contest_namefield[0]['value'] == '0') {
     $form['field_contest_name']['#type'] = 'hidden';
   }
