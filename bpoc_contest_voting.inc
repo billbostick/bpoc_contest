@@ -1,9 +1,12 @@
 <?php
 
-/*
+/**
  * @file bpoc_contest_voting.inc - implements voting api functions for bpoc_contest module
  */
 
+/**
+ * save user vote to the database 
+ */
 function bpoc_contest_vote($nid, $email='') {
   global $user;
   db_query("INSERT INTO {bpoc_contest_votes} (uid, nid, vote_value, email_address, timestamp, source) VALUES (%d, %d, %d, '%s', %d, '%s')", $user->uid, $nid, 1, htmlentities($email), time(), ip_address());
@@ -11,14 +14,16 @@ function bpoc_contest_vote($nid, $email='') {
   return;
 }
 
-function bpoc_contest_get_submission_votes($nid) {
-  return db_result(db_query("SELECT COUNT({bpoc_contest_votes}.nid) FROM {bpoc_contest_votes} WHERE {bpoc_contest_votes}.nid = %d", $nid));
-}
-
+/**
+ * given a node id, return the vote count for that node
+ */
 function bpoc_contest_get_submission_vote_count($nid) {
   return db_result(db_query("SELECT COUNT({bpoc_contest_votes}.nid) FROM {bpoc_contest_votes} WHERE {bpoc_contest_votes}.nid = %d", $nid));
 }
 
+/*
+ * given a contest node id, return an array of submission node ids for that contest
+ */
 function bpoc_contest_get_submissions($nid) {
   $result = db_query("SELECT n.nid FROM {node} n LEFT JOIN {content_type_photo_submission} s ON n.nid = s.nid WHERE s.field_contest_ref_nid = %d", $nid);
   $submissions = array();
@@ -28,6 +33,9 @@ function bpoc_contest_get_submissions($nid) {
   return $submissions;
 }
 
+/**
+ * given a contest node id, return an array of votes placed for that contest
+ */
 function bpoc_contest_get_votes($nid) {
   $result = db_query("SELECT v.uid, v.email_address, v.timestamp, v.source FROM {bpoc_contest_votes} v WHERE v.nid = %d", $nid);
   $votes = array();
@@ -42,6 +50,9 @@ function bpoc_contest_get_votes($nid) {
  return $votes; 
 }
 
+/**
+ * menu handler to display votes for both contests and submissions
+ */
 function bpoc_contest_show_votes($node) {
   if ($node->type == 'contest') {
     return bpoc_contest_show_contest_votes($node);
@@ -51,6 +62,10 @@ function bpoc_contest_show_votes($node) {
   }
 }
 
+/**
+ * admin page to display all contest votes
+ * will replace with a view when views integration is complete
+ */
 function bpoc_contest_show_contest_votes($node) {
   $sub_ids = bpoc_contest_get_submissions($node->nid);
   $header = array('Thumbnail', 'Title', 'Votes');
@@ -58,17 +73,24 @@ function bpoc_contest_show_contest_votes($node) {
   foreach ($sub_ids as $sub) {
     $subnode = node_load($sub);
     $img = $subnode->field_contest_photo[0]['filepath'];
-    $thumb = '<a href="/node/' . $subnode->nid . '">' . 
+    $alias = drupal_lookup_path('alias', 'node/' . $subnode->nid); 
+    if (!$alias) {
+      $alias = 'node/' . $subnode->nid;
+    }
+    $thumb = '<a href="/' . $alias . '">' . 
              theme('imagecache', 'contest_admin_thumbnail', $img) .
              '</a>'; 
-    $title = '<a href="/node/' . $subnode->nid . '">' . $subnode->title . '</a>';
+    $title = '<a href="/' . $alias . '">' . $subnode->title . '</a>';
     $rows[] = array($thumb, $title, bpoc_contest_get_submission_vote_count($sub));
   }
   array_sort_by_column($rows, '2');
   $output .= theme('table', $header, $rows);
   return $output;
 }
-
+/**
+ * admin page to display all votes for a submission
+ * will replace with a view when views integration is complete
+ */
 function bpoc_contest_show_submission_votes($node) {
   $votes = bpoc_contest_get_votes($node->nid);
   $header = array('User', 'Email', 'Date', 'Source');
@@ -85,6 +107,11 @@ function bpoc_contest_show_submission_votes($node) {
   return $output;
 }
 
+// utility functions
+
+/**
+ * multi-dimensional array sort
+ */
 function array_sort_by_column(&$arr, $col, $dir = SORT_DESC) {
   $sort_col = array();
   foreach ($arr as $key=> $row) {

@@ -78,6 +78,10 @@ function bpoc_contest_menu() {
   return $items;
 }
 
+/**
+ * menu access callback that returns TRUE if current user had contest 
+ * admin permission AND current page is a contest or submission node
+ */
 function bpoc_contest_is_admin() {
   if (user_access('administer bpoc contest')) {
     if ((arg(0) == 'node') && is_numeric(arg(1))) {
@@ -105,21 +109,30 @@ function bpoc_contest_form_alter(&$form, $form_state, $form_id) {
   }
 }
 
+/**
+ * validation function for voting form
+ */
 function photo_submission_validate($form, &$form_state) {
   if ($form['field_contest_user_agreement']['#value']['value'][0] == '0') {
     form_set_error('field_contest_user_agreement', t('You must agree to the contest rules and terms.'));
   }
 }
 
+/**
+ * after build function for contest node edit form
+ * this is the only place that we can modify cck fields before the form is rendered
+ */
 function bpoc_contest_submission_form_after_build($form, &$form_state) {
   $contest_nid = $form['field_contest_ref'][0]['nid']['#default_value'];
   $contest_node = node_load($contest_nid);
   $form['field_contest_ref']['#type'] = 'hidden';
 
+  // if the user specified an alternate page title for this contest, then use it
   if ($contest_node->field_contest_submitpagetitle[0]['value']) {
     drupal_set_title($contest_node->field_contest_submitpagetitle[0]['value']);
   }
 
+  // hide submission fields that are not enabled for this contest
   if ($contest_node->field_contest_namefield[0]['value'] == '0') {
     $form['field_contest_name']['#type'] = 'hidden';
   }
@@ -153,7 +166,7 @@ function bpoc_contest_submission_form_after_build($form, &$form_state) {
 
 
 /*
- * Admin settings form
+ * Admin settings form - just a placeholder for now
  */
 function bpoc_contest_admin_settings() {
   // some placeholder form elements
@@ -182,8 +195,6 @@ function bpoc_contest_admin_settings() {
 function bpoc_contest_vote_callback($node, $js) {
   $title = t('Vote');
   $form_id = 'bpoc_contest_vote_form';
-  $msg = 'Thank you for voting!';
-
 
   if ($js) {
     ctools_include('ajax');
@@ -209,6 +220,7 @@ function bpoc_contest_vote_callback($node, $js) {
         }
       }
     }
+//  drupal_set_message('Thank you for voting!');
     ctools_ajax_render($output);
   }
   else {
@@ -216,6 +228,9 @@ function bpoc_contest_vote_callback($node, $js) {
   }
 }
 
+/**
+ * display contest rules in a popup dialog box
+ */
 function bpoc_contest_rules_callback($node, $ajax) {
   $rules = check_markup($node->field_contest_rules[0]['value'], 1, FALSE);
   if (!$rules) {
@@ -234,6 +249,9 @@ function bpoc_contest_rules_callback($node, $ajax) {
   return $rules;
 }
 
+/**
+ * display contest terms in a popup dialog box
+ */
 function bpoc_contest_terms_callback($node, $ajax) {
   $terms = check_markup($node->field_contest_terms[0]['value'], 1, FALSE);
   if (!$terms) {
@@ -253,7 +271,7 @@ function bpoc_contest_terms_callback($node, $ajax) {
 }
 
 
-/*
+/**
  * Voting form
  */
 function bpoc_contest_vote_form(&$form_state) {
@@ -291,7 +309,7 @@ function bpoc_contest_vote_form(&$form_state) {
   return $form;
 }
 
-/*
+/**
  * Voting form validation function
  */
 function bpoc_contest_vote_form_validate($form, &$form_state) {
@@ -300,7 +318,7 @@ function bpoc_contest_vote_form_validate($form, &$form_state) {
   }
 }
 
-/*
+/**
  * Voting form submit function
  */
 function bpoc_contest_vote_form_submit($form, &$form_state) {
@@ -312,6 +330,9 @@ function bpoc_contest_vote_form_submit($form, &$form_state) {
   $form_state['redirect'] = drupal_get_destination();
 }
 
+/**
+ * display the voting widget
+ */
 function bpoc_contest_widget($nid) {
   global $user;
 
@@ -333,6 +354,9 @@ function bpoc_contest_widget($nid) {
   return theme('bpoc_contest_widget', $nid, $total, $is_author, $voted, $selected);
 }
 
+/**
+ * implementation of hook_theme
+ */
 function bpoc_contest_theme() {
   return array(
     'bpoc_contest_widget' => array(
@@ -341,7 +365,9 @@ function bpoc_contest_theme() {
   );
 }
 
-/* given the nid of a submission, this function will return the nid of the contest */
+/**
+ * given the nid of a submission, this function will return the nid of the contest 
+ */
 function bpoc_contest_get_contest($nid) {
   $submission_node = node_load($nid);
   if (property_exists($submission_node, 'field_contest_ref')) {
@@ -356,6 +382,9 @@ function bpoc_contest_get_contest($nid) {
   return NULL;
 }
 
+/**
+ * 
+ */
 function bpoc_contest_get_vote_string($nid) {
   $contest_node = node_load($nid);
   if (property_exists($contest_node, 'field_contest_vote_string')) {
@@ -368,6 +397,9 @@ function bpoc_contest_get_vote_string($nid) {
   return NULL;
 }
 
+/**
+ * 
+ */
 function bpoc_contest_get_yourvote_string($nid) {
   $contest_node = node_load($nid);
   if (property_exists($contest_node, 'field_contest_yourvote_string')) {
@@ -380,6 +412,9 @@ function bpoc_contest_get_yourvote_string($nid) {
   return NULL;
 }
 
+/**
+ * 
+ */
 function bpoc_contest_signup($nid) {
   $contest_node = node_load($nid);
   if (property_exists($contest_node, 'field_contest_signup')) {
@@ -392,6 +427,9 @@ function bpoc_contest_signup($nid) {
   return NULL;
 }
 
+/**
+ * 
+ */
 function bpoc_contest_get_signup_string($nid) {
   $contest_node = node_load($nid);
   if (property_exists($contest_node, 'field_contest_signup_string')) {
@@ -404,6 +442,9 @@ function bpoc_contest_get_signup_string($nid) {
   return NULL;
 }
 
+/**
+ * 
+ */
 function theme_bpoc_contest_widget($nid, $total, $is_author, $voted, $selected) {
 
   $module_path = drupal_get_path('module', 'bpoc_contest');
@@ -419,6 +460,9 @@ function theme_bpoc_contest_widget($nid, $total, $is_author, $voted, $selected) 
   return $output;
 }
 
+/**
+ * 
+ */
 function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
   switch ($op) {
     case 'view':
@@ -475,7 +519,7 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
 
 /* session functions */
 
-/*
+/**
  * Get stored email address
  */
 function bpoc_contest_session_get($session_name) {
@@ -485,32 +529,42 @@ function bpoc_contest_session_get($session_name) {
   return NULL;
 }
 
-/*
+/**
  * store email address in sessions table
  */
 function bpoc_contest_session_set($session_name, $session_value) {
   $_SESSION[$session_name] = $session_value;
 }
 
-/*
+/**
  * clear email address from current user's session table
  */
 function bpoc_contest_session_clear($session_name) {
   unset($_SESSION[$session_name]);
 }
 
-/* utility functions for test and debug */
+// utility functions for test and debug 
+
+/**
+ * delete all votes for all contests
+ */
 function bpoc_contest_clearall_votes() {
   db_query("TRUNCATE TABLE {bpoc_contest_votes}");
   drupal_goto('/');
 }
 
+/**
+ * delete votes for current user
+ */
 function bpoc_contest_clear_votes() {
   global $user;
   db_query("DELETE FROM {bpoc_contest_votes} WHERE email_address = '%s'", bpoc_contest_session_get('email'));
   drupal_goto('/');
 }
 
+/**
+ * delete session variable tat holds user email
+ */
 function bpoc_contest_clear_session() {
   bpoc_contest_session_clear('email'); 
   drupal_goto('/');
