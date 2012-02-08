@@ -49,6 +49,14 @@ function bpoc_contest_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['node/%node/showvotes'] = array(
+    'title' => 'Votes',
+    'page callback' => 'bpoc_contest_show_votes',
+    'page arguments' => array(1),
+    'access callback' => 'bpoc_contest_is_admin',
+    'type' => MENU_LOCAL_TASK,
+  );
+
   $items['contest/clear'] = array(
     'title' => 'Clear BPOC Votes',
     'page callback' => 'bpoc_contest_clear_votes',
@@ -68,6 +76,18 @@ function bpoc_contest_menu() {
     'type' => MENU_ITEM_NORMAL,
   );
   return $items;
+}
+
+function bpoc_contest_is_admin() {
+  if (user_access('administer bpoc contest')) {
+    if ((arg(0) == 'node') && is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+      if (($node->type == 'contest') || ($node->type == 'photo_submission')) {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
 }
 
 /**
