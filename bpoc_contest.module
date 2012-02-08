@@ -395,10 +395,18 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
         );
       }
       if ($node->type == 'contest') {
+        dialog_add_js();
         $module_path = drupal_get_path('module', 'bpoc_contest');
         $full_path = $module_path .'/bpoc_contest.css';
-        dialog_add_js();
         drupal_add_css($full_path);
+
+        if (!$teaser) {
+          $node->content['submissions'] = array(
+            '#value' => views_embed_view('bpoc_photo_contest', 'default', $node->nid),
+            '#weight' => 50,
+          );
+        }
+
         $node->content['rules'] = array(
           '#value' => l('Contest Rules', 'node/' . $node->nid . '/rules/nojs',
                        array('attributes' => array('class' => 'ctools-use-dialog contest-rules-link'))),
