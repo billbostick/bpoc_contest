@@ -41,3 +41,17 @@
   margin-bottom: 5px;
 }
 
+.ui-dialog {
+  overflow-y: auto !important;
+}
+
+.view-bpoc-photo-contest.view-display-id-default .views-row {
+  float: left;
+  width: 180px;
+}
+
+.contest-links {
+  clear: both;
+  padding-top: 20px;
+}
+

@@ -185,7 +185,7 @@ function bpoc_contest_vote_callback($node, $js) {
 }
 
 function bpoc_contest_rules_callback($node, $ajax) {
-  $rules = $node->field_contest_rules[0]['value'];
+  $rules = check_markup($node->field_contest_rules[0]['value'], 1, FALSE);
   if (!$rules) {
     $rules = '&nbsp;';
   }
@@ -194,6 +194,7 @@ function bpoc_contest_rules_callback($node, $ajax) {
       'height' => 600,
       'width' => 650,
       'position' => 'center',
+      'resizable' => FALSE,
     );
     dialog_ajax_render('Rules', $rules, $options);
     return;
@@ -202,7 +203,7 @@ function bpoc_contest_rules_callback($node, $ajax) {
 }
 
 function bpoc_contest_terms_callback($node, $ajax) {
-  $terms = $node->field_contest_terms[0]['value'];
+  $terms = check_markup($node->field_contest_terms[0]['value'], 1, FALSE);
   if (!$terms) {
     $terms = '&nbsp;';
   }
@@ -211,6 +212,7 @@ function bpoc_contest_terms_callback($node, $ajax) {
       'height' => 600,
       'width' => 650,
       'position' => 'center',
+      'resizable' => FALSE,
     );
     dialog_ajax_render('Terms', $terms, $options);
     return;
@@ -410,8 +412,8 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
         $node->content['rules'] = array(
           '#value' => l('Contest Rules', 'node/' . $node->nid . '/rules/nojs',
                        array('attributes' => array('class' => 'ctools-use-dialog contest-rules-link'))),
-
           '#weight' => 101,
+          '#prefix' => '<div class="contest-links">',
         );
         $node->content['terms'] = array(
           '#value' => l('Terms', 'node/' . $node->nid . '/terms/nojs',
@@ -420,14 +422,14 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
           '#weight' => 102,
         );
 
-        if (1) {
-          $contest_type = $node->field_contest_type[0]['value'];
-          $node->content['submit_link'] = array(
-            '#value' => l('Submit ' . $contest_type, 'node/add/photo-submission/' . $node->nid,
-                        array('attributes' => array('class' => 'contest-submit-link'))),
-            '#weight' => 103,
-          );
-        }
+        $contest_type = $node->field_contest_type[0]['value'];
+        $node->content['submit_link'] = array(
+          '#value' => l('Submit ' . $contest_type, 'node/add/photo-submission/' . $node->nid,
+                      array('attributes' => array('class' => 'contest-submit-link'))),
+          '#weight' => 103,
+          '#suffix' => '</div>',
+        );
+
         break;
       }
   }
