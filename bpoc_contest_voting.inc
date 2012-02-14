@@ -9,8 +9,24 @@
  */
 function bpoc_contest_vote($nid, $email='') {
   global $user;
+
+  $changed_votes = array();
+  $votes = array();
+  $vote = array(
+    'content_id' => $nid,
+    'value' => 1,
+    'tag' => 'bpoc_contest',
+    'uid' => $user->uid,
+    'value_type' => 'points',
+  );
+  $votes[] = $vote;
+  $criteria = array();
+  $changed_votes = votingapi_set_votes($votes, $criteria);
+
   db_query("INSERT INTO {bpoc_contest_votes} (uid, nid, vote_value, email_address, timestamp, source) VALUES (%d, %d, %d, '%s', %d, '%s')", $user->uid, $nid, 1, htmlentities($email), time(), ip_address());
+  rules_invoke_event('bpoc_contest_vote_cast', $user, $nid);
   watchdog('bpoc_contest', 'Vote by @user (@email - @ipaddress) on node @nid.', array('@user' => $user->name, '@email' => $email, '@ipaddress' => ip_address(), '@nid' => $nid));
+
   return;
 }
 

@@ -511,8 +511,8 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
           '#suffix' => '</div>',
         );
 
-        break;
       }
+      break;
   }
 }
 
