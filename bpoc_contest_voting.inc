@@ -49,6 +49,8 @@ function bpoc_contest_get_submissions($nid) {
   else if ($contest_type == 'Video') {
     $result = db_query("SELECT n.nid FROM {node} n LEFT JOIN {content_type_video_submission} s ON n.nid = s.nid WHERE s.field_contest_ref_nid = %d", $nid);
   }
+=======
+  $result = db_query("SELECT n.nid FROM {node} n LEFT JOIN {content_type_photo_submission} s ON n.nid = s.nid WHERE s.field_contest_ref_nid = %d", $nid);
   $submissions = array();
   while ($record = db_fetch_object($result)) {
     $submissions[] = $record->nid;
