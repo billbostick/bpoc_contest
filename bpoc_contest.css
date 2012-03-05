@@ -1,3 +1,7 @@
+/*
+ * @file - bpoc_contest.css
+ */
+
 .node-form input #edit-title {
   height: 20px;
   font-size: 15px;
@@ -48,10 +52,38 @@
 .view-bpoc-photo-contest.view-display-id-default .views-row {
   float: left;
   width: 180px;
+  padding-bottom: 15px;
+}
+
+.view-bpoc-photo-contest.view-display-id-default ul.pager {
+  padding: 10px 0;
 }
 
 .contest-links {
   clear: both;
-  padding-top: 20px;
+  padding-top: 10px;
 }
+
+.view-bpoc-photo-contest.view-display-id-default {
+  margin-top: 25px;
+  margin-bottom: 20px;
+}
+
+.view-bpoc-photo-contest.view-display-id-default .views-field-title {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.view-bpoc-photo-contest.view-display-id-default .views-field-nothing {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.view-bpoc-photo-contest.view-display-id-default .views-view-grid td {
+  width: 186px;
+  padding: 3px;
+  border: 1px solid #ccc;
+  vertical-align: top;
+}
+
 
