@@ -91,54 +91,19 @@ function bpoc_contest_schema() {
     'description' => t('Stores votes from the bpoc_contest module.'),
     'fields' => array(
       'vote_id'  => array(
-        'type' => 'serial',
+        'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-      'uid'  => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => t('The uid of the user casting the vote.'),
-      ),
-      'nid'  => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => t('The nid of the node being voted on.'),
-      ),
-      'vote_value'  => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => t('The value of vote cast.'),
-      ),
-      'tag' => array(
-        'type' => 'varchar',
-        'length' => 64,
-        'not null' => TRUE,
-        'default' => '',
       ),
       'email_address' => array(
         'description' => t('The email address of the voter.'),
         'type' => 'varchar',
         'length' => 128,
       ),
-      'timestamp' => array(
-        'description' => t('The time the vote was registered.'),
-        'type' => 'int',
-        'unsigned' => TRUE,
-      ),
-      'source' => array(
-        'description' => t('The source IP address of the voter.'),
-        'type' => 'varchar',
-        'length' => 255,
-      ),
     ),
-    'primary key' => array('vote_id', 'nid'),
+    'primary key' => array('vote_id'),
     'indexes' => array(
       'vote_id' => array('vote_id'),
-      'nid' => array('nid'),
     ),
   );
   return $schema;

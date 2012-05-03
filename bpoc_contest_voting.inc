@@ -7,10 +7,10 @@
 /**
  * save user vote to the database 
  */
-function bpoc_contest_vote($nid, $email='') {
+function bpoc_contest_vote($nid, $email) {
   global $user;
 
-  $changed_votes = array();
+  // prepare the vote structure
   $votes = array();
   $vote = array(
     'content_id' => $nid,
@@ -21,20 +21,52 @@ function bpoc_contest_vote($nid, $email='') {
   );
   $votes[] = $vote;
   $criteria = array();
-  $changed_votes = votingapi_set_votes($votes, $criteria);
 
-  db_query("INSERT INTO {bpoc_contest_votes} (uid, nid, vote_value, email_address, timestamp, source) VALUES (%d, %d, %d, '%s', %d, '%s')", $user->uid, $nid, 1, htmlentities($email), time(), ip_address());
-  rules_invoke_event('bpoc_contest_vote_cast', $user, $nid);
-  watchdog('bpoc_contest', 'Vote by @user (@email - @ipaddress) on node @nid.', array('@user' => $user->name, '@email' => $email, '@ipaddress' => ip_address(), '@nid' => $nid));
+  if (bpoc_contest_validate_vote($nid, $email)) {
+
+    // save the email address to our own table
+    // we don't know the vote_id yet, so we'll write a 0 there for now
+    // and update the table in the insert hook
+    db_query("INSERT INTO {bpoc_contest_votes} (vote_id, email_address) VALUES (%d, '%s')", 0, htmlentities($email));
+
+    // call voting API function to save vote
+    votingapi_set_votes($votes, $criteria);
+
+    // write an entry to the watchdog log
+    watchdog('bpoc_contest', 'Vote by @user (@email - @ipaddress) on node @nid.', array('@user' => $user->name, '@email' => $email, '@ipaddress' => ip_address(), '@nid' => $nid));
+
+    // invoke our custom rules hook
+    rules_invoke_event('bpoc_contest_vote_cast', $user, $nid);
+  }
 
   return;
+}
+
+function bpoc_contest_votingapi_insert($votes) {
+  // extract the vote_id value
+  $vote_id = $votes[0]['vote_id'];
+
+  // update the record in the bpoc_contest_votes table with the correct vote_id
+  db_query("UPDATE {bpoc_contest_votes} SET vote_id = %d WHERE vote_id = %d", $vote_id, 0);
+  return;  
+}
+
+function bpoc_contest_validate_vote($nid, $email) {
+  $criteria = array();
+  $criteria['vote_source'] = ip_address();
+  $criteria['timestamp'] = time();
+
+  $votes = votingapi_select_votes($criteria);
+//  dpm($votes);
+
+  return TRUE;
 }
 
 /**
  * given a node id, return the vote count for that node
  */
 function bpoc_contest_get_submission_vote_count($nid) {
-  return db_result(db_query("SELECT COUNT({bpoc_contest_votes}.nid) FROM {bpoc_contest_votes} WHERE {bpoc_contest_votes}.nid = %d", $nid));
+//  return db_result(db_query("SELECT COUNT({bpoc_contest_votes}.nid) FROM {bpoc_contest_votes} WHERE {bpoc_contest_votes}.nid = %d", $nid));
 }
 
 /*
@@ -49,7 +81,6 @@ function bpoc_contest_get_submissions($nid) {
   else if ($contest_type == 'Video') {
     $result = db_query("SELECT n.nid FROM {node} n LEFT JOIN {content_type_video_submission} s ON n.nid = s.nid WHERE s.field_contest_ref_nid = %d", $nid);
   }
-  $result = db_query("SELECT n.nid FROM {node} n LEFT JOIN {content_type_photo_submission} s ON n.nid = s.nid WHERE s.field_contest_ref_nid = %d", $nid);
   $submissions = array();
   while ($record = db_fetch_object($result)) {
     $submissions[] = $record->nid;
@@ -61,7 +92,7 @@ function bpoc_contest_get_submissions($nid) {
  * given a contest node id, return an array of votes placed for that contest
  */
 function bpoc_contest_get_votes($nid) {
-  $result = db_query("SELECT v.uid, v.email_address, v.timestamp, v.source FROM {bpoc_contest_votes} v WHERE v.nid = %d", $nid);
+//  $result = db_query("SELECT v.uid, v.email_address, v.timestamp, v.source FROM {bpoc_contest_votes} v WHERE v.nid = %d", $nid);
   $votes = array();
   $vote = array();
   while ($record = db_fetch_object($result)) {
@@ -94,43 +125,16 @@ function bpoc_contest_show_votes($node) {
  * will replace with a view when views integration is complete
  */
 function bpoc_contest_show_contest_votes($node) {
-  $sub_ids = bpoc_contest_get_submissions($node->nid);
-  $header = array('Thumbnail', 'Title', 'Votes');
-  $rows = array();
-  foreach ($sub_ids as $sub) {
-    $subnode = node_load($sub);
-    $img = $subnode->field_contest_photo[0]['filepath'];
-    $alias = drupal_lookup_path('alias', 'node/' . $subnode->nid); 
-    if (!$alias) {
-      $alias = 'node/' . $subnode->nid;
-    }
-    $thumb = '<a href="/' . $alias . '">' . 
-             theme('imagecache', 'contest_admin_thumbnail', $img) .
-             '</a>'; 
-    $title = '<a href="/' . $alias . '">' . $subnode->title . '</a>';
-    $rows[] = array($thumb, $title, bpoc_contest_get_submission_vote_count($sub));
-  }
-  array_sort_by_column($rows, '2');
-  $output .= theme('table', $header, $rows);
+  $output = views_embed_view('bpoc_photo_contest','page_2', $node->nid);
   return $output;
 }
+
 /**
  * admin page to display all votes for a submission
  * will replace with a view when views integration is complete
  */
 function bpoc_contest_show_submission_votes($node) {
-  $votes = bpoc_contest_get_votes($node->nid);
-  $header = array('User', 'Email', 'Date', 'Source');
-  $rows = array();
-  foreach ($votes as $vote) {
-    $rows[] = array(
-      theme('username', user_load($vote['uid'])),
-      $vote['email_address'],
-      date('d-M-Y g:ha', $vote['timestamp']),
-      $vote['source'],
-    );
-  }
-  $output = theme('table', $header, $rows);
+  $output = views_embed_view('bpoc_photo_contest','block_2', $node->nid);
   return $output;
 }
 

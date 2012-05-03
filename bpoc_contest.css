@@ -79,11 +79,19 @@
   padding-right: 8px;
 }
 
+.bpoc_contest_winners table {
+  width: 100%;
+}
+
+.bpoc_contest_winners table th,
+.view-bpoc-photo-contest.view-display-id-block_3 .views-view-grid td, 
 .view-bpoc-photo-contest.view-display-id-default .views-view-grid td {
   width: 186px;
   padding: 3px;
-  border: 1px solid #ccc;
+  border: none;
   vertical-align: top;
+  width: 30%;
+  text-align: right;
 }
 
 

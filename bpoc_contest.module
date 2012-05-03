@@ -53,8 +53,19 @@ function bpoc_contest_menu() {
     'title' => 'Votes',
     'page callback' => 'bpoc_contest_show_votes',
     'page arguments' => array(1),
-    'access callback' => 'bpoc_contest_is_admin',
+    'access callback' => 'bpoc_contest_votes_tab_access',
+    'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['node/%node/submissions'] = array(
+    'title' => 'Submissions',
+    'page callback' => 'bpoc_contest_show_submissions',
+    'page arguments' => array(1),
+    'access callback' => 'bpoc_contest_submissions_tab_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
   );
 
   $items['contest/clear'] = array(
@@ -79,19 +90,49 @@ function bpoc_contest_menu() {
 }
 
 /**
- * menu access callback that returns TRUE if current user had contest 
- * admin permission AND current page is a contest or submission node
+ * 
  */
-function bpoc_contest_is_admin() {
+function bpoc_contest_votes_tab_access($node) {
   if (user_access('administer bpoc contest')) {
-    if ((arg(0) == 'node') && is_numeric(arg(1))) {
-      $node = node_load(arg(1));
-      if (($node->type == 'contest') || ($node->type == 'photo_submission' )|| ($node->type == 'video_submission')) {
-        return TRUE;
-      }
+    if (bpoc_contest_is_submission($node)) {
+      return TRUE;
     }
   }
   return FALSE;
+}
+
+function bpoc_contest_submissions_tab_access($node) {
+  if (user_access('administer bpoc contest')) {
+    if (bpoc_contest_is_contest($node)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+function bpoc_contest_is_contest($node) {
+  if ($node->type == 'contest') {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+function bpoc_contest_is_submission($node) {
+  if (($node->type == 'photo_submission') || ($node->type == 'video_submission')) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+function bpoc_contest_is_admin($node) {
+  if (user_access('administer bpoc contest')) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+function bpoc_contest_show_submissions($node) {
+  return views_embed_view('bpoc_photo_contest', 'block_1', $node->nid);
 }
 
 /**
@@ -491,6 +532,7 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
           '#weight' => 100,
         );
       }
+
       if ($node->type == 'contest') {
         dialog_add_js();
         $module_path = drupal_get_path('module', 'bpoc_contest');
@@ -498,11 +540,32 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
         drupal_add_css($full_path);
 
         if (!$teaser) {
-          $node->content['submissions'] = array(
-            '#value' => views_embed_view('bpoc_photo_contest', 'default', $node->nid),
-            '#weight' => -10,
-            '#suffix' => '<div style="clear:both"></div>',
-          );
+
+          $vote_end_date = strtotime($node->field_contest_voting_end_date[0]['value']);
+
+          if ($vote_end_date > time()) {
+
+            $node->content['submissions'] = array(
+              '#value' => views_embed_view('bpoc_photo_contest', 'default', $node->nid),
+              '#weight' => -10,
+              '#suffix' => '<div style="clear:both"></div>',
+            );
+
+          }
+          else {
+            $rows = array();
+            $header = array("First Place", "Second Place", "Third Place");
+            $table = '<div class="bpoc_contest_winners">' . theme('table', $header, $rows) . '</div>';
+
+            $node->content['winners'] = array(
+              '#value' => $table . views_embed_view('bpoc_photo_contest', 'block_3', $node->nid),
+              '#weight' => -10,
+              '#suffix' => '<div style="clear:both"></div>',
+            );
+          }
+
+
+
         }
 
         if ($node->field_contest_rules[0]['value']) {
@@ -522,26 +585,30 @@ function bpoc_contest_nodeapi(&$node, $op, $teaser, $page) {
           );
         }
 
-        $contest_type = $node->field_contest_type[0]['value'];
-        if ($contest_type == 'Photo') {
-          $node->content['submit_link'] = array(
-            '#value' => l('Submit ' . $contest_type, 'node/add/photo-submission/' . $node->nid,
-                        array('attributes' => array('class' => 'contest-submit-link'))),
-            '#weight' => 103,
-            '#suffix' => '</div>',
-          );
-        }
-        else if ($contest_type == 'Video') {
-          $node->content['submit_link'] = array(
-            '#value' => l('Submit ' . $contest_type, 'node/add/video-submission/' . $node->nid,
-                        array('attributes' => array('class' => 'contest-submit-link'))),
-            '#weight' => 103,
-            '#suffix' => '</div>',
-          );
-        }
 
+        $submit_end_date = strtotime($node->field_contest_sub_end_date[0]['value']);
+        if ($submit_end_date > time()) {
+
+          $contest_type = $node->field_contest_type[0]['value'];
+          if ($contest_type == 'Photo') {
+            $node->content['submit_link'] = array(
+              '#value' => l('Submit ' . $contest_type, 'node/add/photo-submission/' . $node->nid,
+                          array('attributes' => array('class' => 'contest-submit-link'))),
+              '#weight' => 103,
+              '#suffix' => '</div>',
+            );
+          }
+          else if ($contest_type == 'Video') {
+            $node->content['submit_link'] = array(
+              '#value' => l('Submit ' . $contest_type, 'node/add/video-submission/' . $node->nid,
+                          array('attributes' => array('class' => 'contest-submit-link'))),
+              '#weight' => 103,
+              '#suffix' => '</div>',
+            );
+          }
       }
-      break;
+    }
+    break;
   }
 }
 
@@ -598,5 +665,12 @@ function bpoc_contest_clear_session() {
   bpoc_contest_session_clear('email'); 
   drupal_goto('/');
 }
+
+function bpoc_contest_views_api() {
+  return array(
+    'api' => 2.0
+  );
+}
+
 
 
